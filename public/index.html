@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatBot</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="./index.css" />
+  </head>
+  <body>
+    <!-- we are first going to create a div that will display the messages sent and the messages recieved which is scrollable and also remember that we will use javascript to manipulate it-->
+
+    <div class="chat-container">
+      <h2>welcome to my chatBot</h2>
+
+      <div id="chatBox" class="chat-box"></div>
+
+      <div class="input-container">
+        <!-- here, we will create an input box for writing and a button to send the response to the backend side -->
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="please input a message"
+        />
+        <button id="sendButton">Send</button>
+      </div>
+    </div>
+
+    <script>
+      //here is to just create our client side websocket connection
+
+      // Create to the socket.io server that was created
+      const socket = io();
+
+      // what we want to do now is to use the session id and attach it to the local storage
+      let sessionId = localStorage.getItem(`sessionId`); //if there is an existing sessionId
+      //but if there isnt, we create one unique id
+      if (!sessionId) {
+        sessionId = `session-${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem("sessionId", sessionId);
+      }
+
+      //after connecting to the server, now its time to list out all our variables
+
+      const messageInput = document.getElementById(`messageInput`);
+      const sendButton = document.getElementById(`sendButton`);
+      const chatBox = document.getElementById(`chatBox`);
+
+      //next, the first thing to do is to send a message to the chatbot to wake it up
+
+      socket.on(`connect`, () => {
+        socket.emit(`session`, sessionId);
+      });
+
+      socket.on("disconnect", () => {
+        console.log("Disconnected from server");
+      });
+
+      //now when the socket to listen to messages sent from the backend , we want it to also display the message in the chatBox
+      socket.on(`message`, (ServerResponse) => {
+
+
+        appendMessage(`ChatBot: ${ServerResponse}`, 'chat-bot');  //note how the style is added to it
+        // console.log(`recieved message: ${ServerResponse}`);
+
+        // const messageElement = document.createElement(`div`);
+        // messageElement.textContent = `ChatBot: ${ServerResponse}`;
+        // messageElement.classList.add(`chat-message`, `chatBot`, `userMessage`);
+        // chatBox.appendChild(messageElement);
+
+        // chatBox.scrollTop = chatBox.scrollHeight; // this allows us to scroll to the top
+      });
+
+      sendButton.addEventListener(`click`, () => {
+        const message = messageInput.value.trim(); // trims the whitespace
+        if (message !== "") {
+          socket.emit(`message`, message);
+
+          appendMessage(`You: ${message}`, 'user-message'); //note how the style is added to it
+          messageInput.value = ``;
+
+          // const messageElement = document.createElement(`div`);
+          // messageElement.textContent = `You: ${message}`;
+          // chatBox.appendChild(messageElement);
+        }
+      });
+
+      function appendMessage(message, messageType) {
+        const messageElement = document.createElement('p');
+        messageElement.classList.add('message', messageType);
+        messageElement.innerHTML = message.replace(/\n/g, '<br>');
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot</title>
+</head>
+<body>
+    <div id="loginSection">
+        <h2>Enter your name to start chatting</h2>
+        <input id="nameInput" type="text" placeholder="Enter your name">
+        <button id="loginButton">Login</button>
+    </div>
+    <div id="chatSection" style="display: none;">
+        <h2>Welcome to my ChatBot</h2>
+        <input id="messageInput" type="text" placeholder="Type a message">
+        <button id="sendButton">Send</button>
+        <div id="chatBox"></div>
+    </div>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io('http://localhost:4000');
+
+    const loginSection = document.getElementById('loginSection');
+    const chatSection = document.getElementById('chatSection');
+    const loginButton = document.getElementById('loginButton');
+    const sendButton = document.getElementById('sendButton');
+    const messageInput = document.getElementById('messageInput');
+    const nameInput = document.getElementById('nameInput');
+    const chatBox = document.getElementById('chatBox');
+
+    let userName = '';
+
+    loginButton.addEventListener('click', () => {
+        userName = nameInput.value;
+        if (userName) {
+            loginSection.style.display = 'none';
+            chatSection.style.display = 'block';
+            socket.emit('login', userName);
+        } else {
+            nameInput.style.borderColor = 'red';
+            nameInput.placeholder = 'Please enter your name';
+        }
+    });
+
+    sendButton.addEventListener('click', () => {
+        const message = messageInput.value;
+        socket.emit('message', { name: userName, message });
+        messageInput.value = '';
+
+        const messageElement = document.createElement('p');
+        messageElement.textContent = `You: ${message}`;
+        chatBox.appendChild(messageElement);
+    });
+
+    socket.on('message', (message) => {
+        const messageElement = document.createElement('p');
+        messageElement.textContent = message;
+        chatBox.appendChild(messageElement);
+    });
+
+    if (!localStorage.getItem('sessionId')) {
+        const sessionId = `session-${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('sessionId', sessionId);
+    }
+</script>
+</html>
