@@ -6,12 +6,12 @@ const path = require("path");
 const socketIo = require('socket.io');
 const ejs = require("ejs");
 require("dotenv").config();
-const routes = require('../routes/routes');
+const routes = require('./routes/routes');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-const publicPath = path.join(__dirname, "../public");
+const publicPath = path.join(__dirname, "./public");
 
 app.set("view engine", "ejs");
 app.use(express.static(publicPath));
