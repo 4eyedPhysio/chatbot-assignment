@@ -17,7 +17,7 @@ app.set("view engine", "ejs");
 app.use(express.static(publicPath));
 app.use(routes);
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 4000;
 
 const users = {};
 const sessions = {};
